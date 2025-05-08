@@ -1,5 +1,11 @@
 { config, lib, ... }:
 {
+
+  sops = {
+    secrets."xrdp/cert" = { key = "xrdp/cert"; };
+    secrets."xrdp/key" = { key = "xrdp/key"; };
+  };
+
   wsl = {
     enable = true;
     defaultUser = "jordy";
@@ -15,9 +21,14 @@
 
   networking.firewall.enable = false;
 
-  services.xrdp = {
-    enable = true;
-    extraConfDirCommands = ''
+  services.xrdp =
+    let
+      xrdp_cert = config.sops.secrets."xrdp/cert".path;
+      xrdp_key = config.sops.secrets."xrdp/key".path;
+    in
+    {
+      enable = true;
+      extraConfDirCommands = ''
 
       mkdir -p $out
 
@@ -28,8 +39,8 @@
 
       substituteInPlace $out/xrdp.ini \
         --replace-fail "port=3389" "port=tcp://:3388" \
-        --replace-fail "crypt_level=high" "crypt_level=none" \
-        --replace-fail "security_layer=negotiate" "security_layer=rdp" \
+        --replace-fail "certificate=" "certificate=${xrdp_cert}" \
+        --replace-fail "key_file=" "key_file=${xrdp_key}" \
         --replace-fail "bitmap_compression=true" "bitmap_compression=false"
 
       # Ensure that clipboard works for non-ASCII characters
@@ -38,7 +49,7 @@
       LOCALE_ARCHIVE=${config.i18n.glibcLocales}/lib/locale/locale-archive
       ' $out/sesman.ini
     '';
-  };
+    };
 
   systemd.services.xrdp = {
 
@@ -54,3 +65,4 @@
 
   system.stateVersion = "24.11"; # Did you read the comment?
 }
+
