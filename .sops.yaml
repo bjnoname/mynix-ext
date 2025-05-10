@@ -1,5 +1,6 @@
 keys:
   - &nixos-wsl-a age1dglcwwg9f0hfxrywd5f87j3zy7t9n233c89gtyzj43pvuwfdyd4qvt2dpy
+  - &nixos-wsl-h age1zxxllmnczhzkqzdxyn2594fj25653h3nn07lzjvkusq69c39qynsdhxwdd
   - &jordy age1m7z5t352j327fr2twe63mw3rr0cfa0v6sj53v7gnfgrlhwjnncpq3f69hq
   - &jordy-sl age1zn7t2mcmuaz3hafx6l087k3r2ftvxvf9pgpm0c3mt5wx65em5g6s6yvm0c
 creation_rules:
@@ -7,5 +8,6 @@ creation_rules:
     key_groups:
       - age:
           - *nixos-wsl-a
+          - *nixos-wsl-h
           - *jordy
           - *jordy-sl
