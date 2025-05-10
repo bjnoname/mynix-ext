@@ -10,7 +10,14 @@
     secrets."jordy/hashedPassword" = {
       neededForUsers = true;
     };
+
+    secrets."localhost/key" = { key = "localhost/key"; };
   };
+
+  security.pki.certificates =
+    [
+      (builtins.readFile ../certs/localhost.crt)
+    ];
 
   users = {
 
@@ -43,6 +50,28 @@
       KbdInteractiveAuthentication = false;
     };
   };
+
+  systemd.services.localhost-cert =
+    let
+      openssl_cmd = "${pkgs.openssl}/bin/openssl";
+      localhost_crt = ../certs/localhost.crt;
+      localhost_key = config.sops.secrets."localhost/key".path;
+      localhost_pfx = "/run/secrets/localhost/cert.pfx";
+    in
+    {
+      description = "Export localhost certificate";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+      };
+      script = ''
+        mkdir -p $(dirname ${localhost_pfx})
+
+        ${openssl_cmd} pkcs12 -in ${localhost_crt} -inkey ${localhost_key} -export -out ${localhost_pfx} -passout pass:
+
+        chmod a+r ${localhost_pfx}
+      '';
+    };
 
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
